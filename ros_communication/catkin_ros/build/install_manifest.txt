@@ -1,0 +1,9 @@
+/home/mds/catkin_ros/install/_setup_util.py
+/home/mds/catkin_ros/install/env.sh
+/home/mds/catkin_ros/install/setup.bash
+/home/mds/catkin_ros/install/local_setup.bash
+/home/mds/catkin_ros/install/setup.sh
+/home/mds/catkin_ros/install/local_setup.sh
+/home/mds/catkin_ros/install/setup.zsh
+/home/mds/catkin_ros/install/local_setup.zsh
+/home/mds/catkin_ros/install/.rosinstall

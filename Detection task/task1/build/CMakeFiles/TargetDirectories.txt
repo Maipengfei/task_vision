@@ -1,0 +1,3 @@
+/home/mds/桌面/Example/Detection task/OpencvCodes/codes of task/build/CMakeFiles/rebuild_cache.dir
+/home/mds/桌面/Example/Detection task/OpencvCodes/codes of task/build/CMakeFiles/edit_cache.dir
+/home/mds/桌面/Example/Detection task/OpencvCodes/codes of task/build/CMakeFiles/ArmorDetection.dir

@@ -1,0 +1,2 @@
+node_communication
+-DCATKIN_DEVEL_PREFIX=/home/mds/catkin_ros/devel -DCMAKE_INSTALL_PREFIX=/home/mds/catkin_ros/install -G Unix Makefiles
