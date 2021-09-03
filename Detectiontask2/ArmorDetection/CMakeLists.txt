@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 2.8)
+project(secondDetection)
+find_package( OpenCV REQUIRED )
+include_directories( ${OpenCV_INCLUDE_DIRS})
+add_executable( secondDetection secondDetection.cpp)
+target_link_libraries( secondDetection ${OpenCV_LIBS} )
