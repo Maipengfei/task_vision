@@ -10,12 +10,17 @@ using namespace cv;
 enum State { hammer, sword, neither };
 Mat imgCanny, imgDil, imgCannyDil;
 Mat imgHSV, mask, imgT1, imgT2, imgT1Gray, imgT2Gray;
+
 int hmin = 90, smin = 90, vmin = 64;
 int hmax = 125, smax = 255, vmax = 255;//初始化各项参数
 
-
-
-double getHistSimilarity(const Mat& I1, const Mat& I2)//仍待研究！！！比较两图的的相似性，范围从0到1
+/******************************************************************
+* @mpf
+* @brief：根据像素直方分布比较两图相似性
+* @param：比较相似性的两张图
+*@return: 返回double类型相似值（0~1）
+*******************************************************************/
+double getHistSimilarity(const Mat& I1, const Mat& I2)
 {
 	int histSize = 256;
 	float range[] = { 0,256 };
@@ -34,7 +39,13 @@ double getHistSimilarity(const Mat& I1, const Mat& I2)//仍待研究！！！比
 	return compareHist(hist1, hist2, HISTCMP_CORREL);
 }
 
-int matchTemplate(Mat imgOrigin)//通过模板匹配判断出对应扇叶是否已经被击打
+/******************************************************************
+* @mpf
+* @brief：通过模板匹配判断出对应扇叶是否已经被击打
+* @param：通过透视转换截来的扇叶图
+*@return: 返回hammer or sword
+*******************************************************************/
+int matchTemplate(Mat imgOrigin)//
 {
 	string path2 = "Resources/fans(110.60)/hammer.jpg";
 	Mat imgThammer = imread(path2);
@@ -57,7 +68,13 @@ int matchTemplate(Mat imgOrigin)//通过模板匹配判断出对应扇叶是否�
 	imshow("Template", imgTGray);
 }
 
-float getDistance(Point pointO, Point pointA)//计算两点距离
+/******************************************************************
+* @mpf
+* @brief：计算两点距离
+* @param：两个点
+*@return: 返回距离
+*******************************************************************/
+float getDistance(Point pointO, Point pointA)//
 {
 	float distance;
 	distance = powf((pointO.x - pointA.x), 2) + powf((pointO.y - pointA.y), 2);
@@ -65,8 +82,13 @@ float getDistance(Point pointO, Point pointA)//计算两点距离
 	return distance;
 }
 
-void fanDetection(Mat img)//预处理原图，通过两次面积去噪，然后获取扇叶最小外接矩形，
-						//并获取其透视图，通过模板匹配，最后在原图标出打击点
+/******************************************************************
+* @mpf
+* @brief：预处理原图，通过两次面积去噪，然后获取扇叶最小外接矩形，
+*					并获取其透视图，通过模板匹配，最后在原图标出打击点
+* @param：原图
+*******************************************************************/
+void fanDetection(Mat img)
 {
 	cvtColor(img, imgHSV, COLOR_BGR2HSV);
 
@@ -80,16 +102,22 @@ void fanDetection(Mat img)//预处理原图，通过两次面积去噪，然后�
 
 	vector<vector<Point>> contours;
 	vector<Vec4i> hierarchy;
+
 	int structElementSize = 1;
 	Mat element = getStructuringElement(MORPH_RECT, Size(2 * structElementSize + 1, 2 * structElementSize + 1), Point(structElementSize, structElementSize));
-	morphologyEx(imgDil, imgDil, MORPH_CLOSE, element);//闭环运算，避免小洞干扰后续寻找子轮廓（装甲板）
+	morphologyEx(imgDil, imgDil, MORPH_CLOSE, element);
+	//闭环运算，避免小洞干扰后续寻找子轮廓（装甲板）
+
 	findContours(imgDil, contours, hierarchy, RETR_CCOMP, CHAIN_APPROX_SIMPLE);
+
 	structElementSize = 3;
 	//imshow("ImageDil", imgDil);
-	//cout<<"轮廓数："<<contours.size()<<endl;//
+	//cout<<"轮廓数："<<contours.size()<<endl;
+
 	vector<RotatedRect> boundRect(contours.size());
 	Point2f P[4];
-	int n = 0;//计算灯柱  
+	int n = 0;
+	//计算灯柱  
 	int k = 0;
 	for (int i = 0; i < contours.size(); i++)
 	{
@@ -107,7 +135,7 @@ void fanDetection(Mat img)//预处理原图，通过两次面积去噪，然后�
 			double width;
 			double height;
 
-			//矫正提取的叶片的宽高
+			//矫正提取的叶片的宽高，确保截取出来的矩形是宽大于高的
 			width = getDistance(P[0], P[1]);
 			height = getDistance(P[1], P[2]);
 			if (width > height)
@@ -133,9 +161,8 @@ void fanDetection(Mat img)//预处理原图，通过两次面积去噪，然后�
 			// 应用透视变换，矫正成规则矩形
 			Mat transform = getPerspectiveTransform(srcRect, dstRect);
 			Mat perspectMat;
-			warpPerspective(imgDil, perspectMat, transform, Size(width,height));// 提取扇叶图片
-			
-			
+			warpPerspective(imgDil, perspectMat, transform, Size(width,height));
+			// 提取扇叶图片
 			
 			Mat testim = perspectMat(Rect(0, 0, width, height));
 			Mat testimGray1, testimGray2;
@@ -145,10 +172,10 @@ void fanDetection(Mat img)//预处理原图，通过两次面积去噪，然后�
 			cout << "Area2:" << area2 << endl;
 			if (area2 > 5000)//进一步过滤非扇叶轮廓
 			{
-			
-				
 				imshow("ImageTestim", testim);
-				matchTemplate(testim);//模板匹配判断是否为击打后的扇叶
+				matchTemplate(testim);
+				//模板匹配判断是否为击打后的扇叶
+
 				if (matchTemplate(testim) == hammer)
 				{
 					
@@ -167,17 +194,21 @@ void fanDetection(Mat img)//预处理原图，通过两次面积去噪，然后�
 						float height = rect_tmp.size.height;
 						if (height > width)
 							swap(height, width);
+
 						float area3 = width * height;
+
 						cout << "Area3:" << area3 << endl;
 						cout << "ratio:" << (height / width) << endl;
-						//筛选
+						//通过宽高比，以及最小包围轮廓面积筛选掉噪音轮廓，确保取得扇叶轮廓
 						if (height / width > maxHWRatio || area3 > maxArea || area3 < minArea) 
 						{
 							continue;
 						}
 						Point centerP = rect_tmp.center;
 						//打击点
+
 						circle(img, centerP, 1, Scalar(0, 0, 255), 1);
+
 						//画出装甲位置
 						for (int j = 0; j < 4; ++j)
 						{
@@ -192,7 +223,6 @@ void fanDetection(Mat img)//预处理原图，通过两次面积去噪，然后�
 	}
 
 	imshow("Image", img);
-	//imshow("ImageDil", imgDil);
 	waitKey(30);
 }
 

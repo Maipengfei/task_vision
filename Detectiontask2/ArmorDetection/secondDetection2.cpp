@@ -7,14 +7,19 @@
 using namespace std;
 using namespace cv;
 
-/// ///////////Ê¶±ğµ¥¸ö×°¼×°å/////////////////
+/// ///////////è¯†åˆ«å•ä¸ªè£…ç”²æ¿/////////////////
 
 Mat imgHSV, mask, imgCanny, imgDil, imgDilmask;
 int hmin = 11, smin = 0, vmin = 47;
-int hmax = 152, smax = 255, vmax = 255;//³õÊ¼»¯¸÷Ïî²ÎÊı
+int hmax = 152, smax = 255, vmax = 255;//åˆå§‹åŒ–å„é¡¹å‚æ•°
 
-
-float getDistance(Point pointO, Point pointA)//¼ÆËãÁ½µã¾àÀë
+/******************************************************************
+* @mpf
+* @briefï¼šè®¡ç®—ä¸¤ç‚¹è·ç¦»
+* @paramï¼šä¸¤ä¸ªç‚¹
+*@return: è¿”å›è·ç¦»
+*******************************************************************/
+float getDistance(Point pointO, Point pointA)//è®¡ç®—ä¸¤ç‚¹è·ç¦»
 {
 	float distance;
 	distance = powf((pointO.x - pointA.x), 2) + powf((pointO.y - pointA.y), 2);
@@ -22,12 +27,21 @@ float getDistance(Point pointO, Point pointA)//¼ÆËãÁ½µã¾àÀë
 	return distance;
 }
 
+/******************************************************************
+* @mpf
+* @briefï¼šè®²ä¸€ä¸ªç¯æŸ±çš„æœ€å°åŒ…å›´çŸ©å½¢å¾—åˆ°çš„å››ä¸ªé¡¶ç‚¹è¿›è¡Œé‡æ’åˆ—ï¼Œ
+*					 0123å››ä¸ªç‚¹é¡ºæ—¶é’ˆæ’åˆ—ï¼Œä¸”ç¡®ä¿0 ã€1ä¹‹é—´æ˜¯å®½å¹¶ä¸”åœ¨3ã€ 4ä¸Šæ–¹
+* @paramï¼šæœ€å°åŒ…å›´çŸ©å½¢å¾—åˆ°çš„å››ä¸ªé¡¶ç‚¹
+*@return: è¿”å›é‡æ–°æ’åˆ—å¥½çš„å››ä¸ªç‚¹
+*******************************************************************/
 vector<Point2f> reArange(Point2f Point[4])
 {
 	double width;
 	double height;
-	vector<Point2f> result;//×¢Òâ²»ÒªÔÚ´ËÏŞÖÆ³ß´ç£¬·ñÔòºóÃæµÄbackpush½«»á´ÓµÚn+1¸ö¿ªÊ¼¸³Öµ
-	//½ÃÕıÌáÈ¡µÄÒ¶Æ¬µÄ¿í¸ß
+	vector<Point2f> result;
+	//æ³¨æ„ä¸è¦åœ¨æ­¤é™åˆ¶å°ºå¯¸ï¼Œå¦åˆ™åé¢çš„backpushå°†ä¼šä»ç¬¬n+1ä¸ªå¼€å§‹èµ‹å€¼
+	//çŸ«æ­£æå–çš„å¶ç‰‡çš„å®½é«˜
+
 	width = getDistance(Point[0], Point[1]);
 	height = getDistance(Point[1], Point[2]);
 	if (width > height)
@@ -65,28 +79,38 @@ vector<Point2f> reArange(Point2f Point[4])
 	}
 
 }
-Point countInters(Point point1, Point point2, Point point3, Point point4)//point1Óëpoint4Ïà¶Ô
+
+/******************************************************************
+* @mpf
+* @briefï¼šè®¡ç®—çŸ©å½¢ä¸­å¿ƒç‚¹
+* @paramï¼šæœ€å°åŒ…å›´çŸ©å½¢å¾—åˆ°çš„å››ä¸ªé¡¶ç‚¹ï¼ˆä»»æ„ä¸€ç‚¹å¼€å§‹é¡ºæ—¶é’ˆï¼‰
+*@return: è¿”å›é‡æ–°æ’åˆ—å¥½çš„å››ä¸ªç‚¹
+*******************************************************************/
+Point countInters(Point point1, Point point2, Point point3,,Point point4)
 {
 	Point Intersection;
 	float x1 = point1.x, y1 = point1.y,
 		x2 = point2.x, y2 = point2.y,
-		x3 = point3.x, y3 = point3.y,
-		x4 = point4.x, y4 = point4.y;
-	//cout << x1<<";"<< x2 << ";" <<x3 << ";" <<x4 << ";" << y1 << ";" << y2 << ";" <<y3 << ";" << y4 << endl;
+		x3 = point4.x, y3 = point4.y,
+		x4 = point3.x, y4 = point3.y;
 
 	float k1 = (y1 - y4) / (x1 - x4),
-		k2 = (y2 - y3) / (x2 - x3);// ´Ë´¦×¢Òâ²»ÄÜÓÃÕûĞÍ±äÁ¿£¬·ñÔò»á±»Ô¼Îª0
-//cout << "slope"<< (float)k1 << ";" << (float)k2 << endl;
+		k2 = (y2 - y3) / (x2 - x3);
+		// æ­¤å¤„æ³¨æ„ä¸èƒ½ç”¨æ•´å‹å˜é‡ï¼Œå¦åˆ™ä¼šè¢«çº¦ä¸º0
 
 	int x = (y2 - y1 + k1 * x1 - k2 * x2) / (k1 - k2);
 	int y = (k1 * k2 * (x1 - x2) + k1 * y2 - k2 * y1) / (k1 - k2);
-	/*Intersection.x = x;
-	Intersection.y = y;*/
+
 	return Point(x, y);
 }
 
 
-
+/******************************************************************
+* @mpf
+* @briefï¼šé¢„å¤„ç†åŸå›¾ï¼Œé€šè¿‡ä¸¤æ¬¡é¢ç§¯å»å™ªï¼Œç„¶åè·å–æ‰‡å¶æœ€å°å¤–æ¥çŸ©å½¢ï¼Œ
+*					å¹¶è·å–å…¶é€è§†å›¾ï¼Œé€šè¿‡æ¨¡æ¿åŒ¹é…ï¼Œæœ€ååœ¨åŸå›¾æ ‡å‡ºæ‰“å‡»ç‚¹
+* @paramï¼šåŸå›¾
+*******************************************************************/
 void armorDetection(Mat img)
 {
 
@@ -94,43 +118,46 @@ void armorDetection(Mat img)
 	namedWindow("ImageDil", WINDOW_NORMAL);
 	//namedWindow("ImageDilmask", WINDOW_NORMAL);
 
-	/********     ÑÕÉ«Ê¶±ğ£¬×ª»¯Îª¶şÖµÍ¼    ***********/
+	/********     é¢œè‰²è¯†åˆ«ï¼Œè½¬åŒ–ä¸ºäºŒå€¼å›¾    ***********/
 	vector<Mat> imgChannels;
 	split(img, imgChannels);
-	//»ñµÃÄ¿±êÑÕÉ«Í¼ÏñµÄ¶şÖµÍ¼
-	Mat midImage = imgChannels.at(0) - imgChannels.at(2);//±£ÁôÀ¶É«
+
+	//è·å¾—ç›®æ ‡é¢œè‰²å›¾åƒçš„äºŒå€¼å›¾
+	Mat midImage = imgChannels.at(0) - imgChannels.at(2);//ä¿ç•™è“è‰²
 	threshold(midImage, mask, 80, 255, THRESH_BINARY);
 
 	//Mat midImage = imgChannels.at(0) - imgChannels.at(2);
-	Mat kernel1 = getStructuringElement(MORPH_RECT, Size(3, 3));//³ß´çÔ½´ó£¬ÔòÅòÕÍÔ½¶à
+	Mat kernel1 = getStructuringElement(MORPH_RECT, Size(3, 3));//å°ºå¯¸è¶Šå¤§ï¼Œåˆ™è†¨èƒ€è¶Šå¤š
 	dilate(mask, imgDilmask, kernel1);
 	imshow("ImageMask", mask);
-	//imshow("ImageDilmask", imgDilmask);
+
 	/********    contours    ***********/
 	vector<vector<Point>> contours;
 	vector<Vec4i> hierarchy;
 
 	Canny(imgDilmask, imgCanny, 25, 75);
-	Mat kernel = getStructuringElement(MORPH_RECT, Size(1, 3));//³ß´çÔ½´ó£¬ÔòÅòÕÍÔ½¶à
+	Mat kernel = getStructuringElement(MORPH_RECT, Size(1, 3));//å°ºå¯¸è¶Šå¤§ï¼Œåˆ™è†¨èƒ€è¶Šå¤š
 	dilate(imgCanny, imgDil, kernel);
 	imshow("ImageDil", imgDil);
 	findContours(imgDil, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
 
-	vector<RotatedRect> boundRect(contours.size());//²»ÏŞÖÆ¿ÉÄÜµ¼ÖÂÒç³ö???
-	Point2f P[4];//¿ÉÄÜÎª4
+	vector<RotatedRect> boundRect(contours.size());//ä¸é™åˆ¶å¯èƒ½å¯¼è‡´æº¢å‡º???
+	Point2f P[4];/
 	vector<Point2f> result;
-	int n1 = 0;//¼ÆËãµÆÖù
+
+	int n1 = 0;//è®¡ç®—ç¯æŸ±
 	int n = 0;
+
 	vector<vector<Point2f>> minrectPoint;
-	//cout << "ÂÖÀªÊı" << contours.size() << endl;
+	//cout << "è½®å»“æ•°" << contours.size() << endl;
 
 
 	for (int i = 0; i < contours.size(); i++)
 	{
 		int area = contourArea(contours[i]);
 
-		if (area > 60 && area < 280)//¸ù¾İÍ¼ÏñÃæ»ı¹ıÂËÔëÒô
+		if (area > 60 && area < 280)//æ ¹æ®å›¾åƒé¢ç§¯è¿‡æ»¤å™ªéŸ³
 		{
 
 			//boundRect[n] = boundingRect(contours[i]);
@@ -141,14 +168,15 @@ void armorDetection(Mat img)
 			float width = getDistance(minrectPoint[n1][0], minrectPoint[n1][1]),
 				height = getDistance(minrectPoint[n1][1], minrectPoint[n1][2]),
 				ratioWH = abs(height / width);
+
 			float slope = abs((minrectPoint[n1][1].y - minrectPoint[n1][2].y) / (minrectPoint[n1][1].x - minrectPoint[n1][2].x));
-			//Í¨¹ıµÆÖùµÄ¸ßµÄĞ±ÂÊÉ¸È¥ÎŞĞ§µÆÖù
+			//é€šè¿‡ç¯æŸ±çš„å®½é«˜æ¯”ã€çŸ©å½¢ä¸€è¾¹çš„æ–œç‡ç­›å»æ— æ•ˆç¯æŸ±
 			cout << "slope" << slope << endl;
 			if (ratioWH > 2.0 && ratioWH < 5.0 && height < 45&&slope > 0.5 )
 			{
 				//cout << "Height:" << height << endl;
 				//cout << "Ratio:" << ratioWH << endl;
-				//ÓÃÓÚÅĞ¶ÏµÆÖùËÄ¸öµãË³ĞòÊÇ·ñÕıÈ·
+				//ç”¨äºåˆ¤æ–­ç¯æŸ±å››ä¸ªç‚¹é¡ºåºæ˜¯å¦æ­£ç¡®
 				circle(img, Point(minrectPoint[n1][0]), 1, Scalar(255, 0, 0), FILLED);
 				circle(img, Point(minrectPoint[n1][1]), 1, Scalar(0, 255, 0), FILLED);
 				circle(img, Point(minrectPoint[n1][2]), 1, Scalar(0, 0, 255), FILLED);
@@ -157,7 +185,7 @@ void armorDetection(Mat img)
 			}
 			else
 			{
-				//É¾µô²»·ûºÏÌõ¼şµÄ¾ØĞÎµã
+				//åˆ æ‰ä¸ç¬¦åˆæ¡ä»¶çš„çŸ©å½¢ç‚¹
 				minrectPoint.pop_back();
 				n1--;
 			}
@@ -167,9 +195,9 @@ void armorDetection(Mat img)
 
 	}
 	cout << "value n:" << n << endl;
-	//cout << "µÆÖùÊı£º" << n << endl;
+	//cout << "ç¯æŸ±æ•°ï¼š" << n << endl;
 	
-	int k = 0;//¼ÆËãÓĞĞ§µÆÖù,¼´¿ÉÒÔÓëÁíÒ»µÆÖùÆ¥Åä³É×°¼×°å
+	int k = 0;//è®¡ç®—æœ‰æ•ˆç¯æŸ±,å³å¯ä»¥ä¸å¦ä¸€ç¯æŸ±åŒ¹é…æˆè£…ç”²æ¿
 	for (int i = 0; i < n; i++)
 	{
 		for (int j = i + 1; j < n; j++)
@@ -191,6 +219,7 @@ void armorDetection(Mat img)
 	
 				line(img, Point((minrectPoint[i][0] + minrectPoint[i][1]) / 2), Point((minrectPoint[j][2] + minrectPoint[j][3]) / 2), Scalar(0, 255, 0), 2);
 				line(img, Point((minrectPoint[i][2] + minrectPoint[i][3]) / 2), Point((minrectPoint[j][0] + minrectPoint[j][1]) / 2), Scalar(0, 255, 0), 2);
+
 				circle(img, countInters((minrectPoint[i][0] + minrectPoint[i][1]) / 2,
 					(minrectPoint[j][0] + minrectPoint[j][1]) / 2,
 					(minrectPoint[i][2] + minrectPoint[i][3]) / 2,
@@ -201,14 +230,6 @@ void armorDetection(Mat img)
 
 		}
 	}
-
-
-	/*line(img, Point((minrectPoint[0][0] + minrectPoint[0][1]) / 2), Point((minrectPoint[1][0] + minrectPoint[1][1]) / 2), Scalar(255, 0, 0), 2);
-	line(img, Point((minrectPoint[1][0] + minrectPoint[1][1]) / 2), Point((minrectPoint[1][2] + minrectPoint[1][3]) / 2), Scalar(255, 0, 0), 2);
-	line(img, Point((minrectPoint[1][2] + minrectPoint[1][3]) / 2), Point((minrectPoint[0][2] + minrectPoint[0][3]) / 2), Scalar(255, 0, 0), 2);
-	line(img, Point((minrectPoint[0][2] + minrectPoint[0][3]) / 2), Point((minrectPoint[0][0] + minrectPoint[0][1]) / 2), Scalar(255, 0, 0), 2);*/
-
-
 }
 
 
@@ -216,10 +237,6 @@ void armorDetection(Mat img)
 void main()
 {
 
-	/*string path = "Resources/RM2021_3.png";
-	Mat img = imread(path);
-	imshow("Image", img);
-	armorDetection(img);*/
 	string path = "Resources/RM2021_1.avi";
 	VideoCapture box(path);
 	if (box.isOpened())

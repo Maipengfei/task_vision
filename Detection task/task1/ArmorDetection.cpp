@@ -12,7 +12,11 @@ Mat imgHSV, mask, imgCanny, imgDil;
 int hmin = 0, smin = 68, vmin = 56;
 int hmax = 34, smax = 255, vmax = 255;//初始化各项参数
 
-
+/******************************************************************
+* Point countInters(Point point1, Point point2, Point point3, Point point4) 
+*@brief：计算打击点坐标
+*@param：分别对应矩形从top-right点开始，顺时针四个点坐标
+*******************************************************************/
 Point countInters(Point point1, Point point2, Point point3, Point point4 )
 {
 	Point Intersection;
@@ -20,7 +24,6 @@ Point countInters(Point point1, Point point2, Point point3, Point point4 )
 		x2 = point2.x, y2 = point2.y,
 		x3 = point3.x, y3 = point3.y,
 		x4 = point4.x, y4 = point4.y;
-	//cout << x1<<";"<< x2 << ";" <<x3 << ";" <<x4 << ";" << y1 << ";" << y2 << ";" <<y3 << ";" << y4 << endl;
 	
 	float k1 = (y1 - y4) / (x1 - x4),
 			k2 = (y2 - y3) / (x2 - x3);// 此处注意不能用整型变量，否则会被约为0
@@ -33,8 +36,14 @@ Point countInters(Point point1, Point point2, Point point3, Point point4 )
 	return Point(x,y);
 }
 
+/******************************************************************
+* void armorDetection(Mat img)
+*@brief：执行装甲板的识别
+*@param：输入图像
+*******************************************************************/
 void armorDetection(Mat img)
 {
+
 	/********     颜色识别，转化为HSV图    ***********/
 	cvtColor(img, imgHSV, COLOR_BGR2HSV);//
 	Scalar lower(hmin, smin, vmin);//定义hue、saturation、value三个维度共六个参数
@@ -46,14 +55,17 @@ void armorDetection(Mat img)
 	vector<Vec4i> hierarchy(contours.size());
 
 	Canny(mask, imgCanny, 25, 75);
+	//轮廓检测
 	Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));//尺寸越大，则膨胀越多
 	dilate(imgCanny, imgDil, kernel);
 
 	findContours(imgDil, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+	//储存轮廓
 
+	vector<Rect> boundRect(contours.size());
+	int n = 0;
+	//计算灯柱
 
-	vector<Rect> boundRect(contours.size());//不限制可能导致溢出???
-	int n = 0;//计算灯柱
 	//cout << "轮廓数" << contours.size() << endl;
 	for (int i = 0; i < contours.size(); i++)
 	{
@@ -69,10 +81,12 @@ void armorDetection(Mat img)
 		}
 
 	}
+
 	line(img, Point(boundRect[0].x + boundRect[0].width / 2, boundRect[0].y),
 		Point(boundRect[1].x + boundRect[1].width / 2, boundRect[1].y + boundRect[1].height), Scalar(255, 0, 0), 2);
 	line(img, Point(boundRect[1].x + boundRect[1].width / 2, boundRect[1].y),
 		Point(boundRect[0].x + boundRect[0].width / 2, boundRect[0].y + boundRect[0].height), Scalar(255, 0, 0), 2);
+    //根据两个矩形的上下宽的中点坐标，画对角线
 
 	circle(img, countInters(Point(boundRect[0].x + boundRect[0].width / 2, boundRect[0].y),
 		Point(boundRect[1].x + boundRect[1].width / 2, boundRect[1].y),
@@ -80,6 +94,7 @@ void armorDetection(Mat img)
 		Point(boundRect[1].x + boundRect[1].width / 2, boundRect[1].y + boundRect[1].height)),
 		5,
 		Scalar(0, 255, 0), FILLED);
+	//调用countInters()函数得出两对角线的交点，进而画装甲板中心
 
 
 	imshow("Image", img);
